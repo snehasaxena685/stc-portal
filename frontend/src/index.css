@@ -2,675 +2,408 @@
 @tailwind components;
 @tailwind utilities;
 
-/* GOV THEME TOKENS */
+/* ---------------------------------
+   ROOT COLORS
+---------------------------------- */
 :root {
-  --gov-green: #063f17;
-  --gov-green-light: #eaf8ef;
-  --gov-green-dark: #042d11;
-  --gov-accent-blue: #006bb3;
+  --g1: #064E3B;
+  --g2: #0FA968;
+  --g3: #022d1c;
+  --soft: #F4FAF7;
+  --muted: #6b7280;
+  --card-shadow: 0 10px 30px rgba(15, 50, 30, 0.10);
 }
 
-/* ------------------------------
-   GLOBAL LAYOUT UTILITIES
------------------------------- */
-
-.page-container {
-  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+/* ---------------------------------
+   GLOBAL BODY
+---------------------------------- */
+body {
+  font-family: "Inter", sans-serif;
+  background: linear-gradient(140deg, #eafef4, #dffce9, #f5fff9);
+  background-attachment: fixed;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
-.page-title {
-  @apply text-3xl font-extrabold text-green-900 mb-10 text-center;
+/* ---------------------------------
+   FLOATING BACKGROUND GLOW
+---------------------------------- */
+.floating-bg,
+.floating-bg2 {
+  position: absolute;
+  z-index: -1;
+  filter: blur(40px);
+  opacity: 0.9;
+}
+.floating-bg {
+  width: 480px;
+  height: 480px;
+  top: -100px;
+  left: -70px;
+  background: radial-gradient(circle, rgba(1, 180, 90, 0.25), transparent 70%);
+  animation: float1 14s infinite ease-in-out alternate;
+}
+.floating-bg2 {
+  width: 380px;
+  height: 380px;
+  bottom: -140px;
+  right: -90px;
+  background: radial-gradient(circle, rgba(0, 130, 200, 0.20), transparent 70%);
+  animation: float2 16s infinite ease-in-out alternate;
 }
 
-/* Card Layout */
-.card {
-  @apply bg-white rounded-2xl p-6 shadow-lg border border-green-100 transition-transform duration-200;
-}
+@keyframes float1 { from { transform: translateY(0); } to { transform: translateY(40px); } }
+@keyframes float2 { from { transform: translateX(0); } to { transform: translateX(-50px); } }
 
-/* Buttons */
-.btn-green {
-  @apply bg-green-700 hover:bg-green-800 text-white py-3 px-5 rounded-xl font-semibold shadow-lg transition-transform duration-150;
-}
-.btn-green:hover {
-  transform: translateY(-1px);
-}
-
-/* Inputs */
-.input-box {
-  @apply w-full mt-2 p-3 border rounded-xl border-green-300 focus:ring-2 focus:ring-green-700 outline-none text-sm;
-}
-
-/* ------------------------------
-   AUTH ANIMATIONS
------------------------------- */
-
-.animate-slide-left {
-  animation: slideLeft 0.6s ease-out both;
-}
-.animate-slide-right {
-  animation: slideRight 0.6s ease-out both;
-}
-
-@keyframes slideLeft {
-  0% {
-    opacity: 0;
-    transform: translateX(-40px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-@keyframes slideRight {
-  0% {
-    opacity: 0;
-    transform: translateX(40px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* Reveal on Scroll (if you use .reveal elsewhere) */
-.reveal {
+/* ---------------------------------
+   ANIMATIONS
+---------------------------------- */
+.fade {
   opacity: 0;
-  transform: translateY(40px);
-  transition: all 0.8s ease;
+  transform: translateY(12px);
+  transition: .6s ease-out;
 }
-.reveal.active {
+.fade.show {
   opacity: 1;
-  transform: translateY(0);
+  transform: none;
 }
 
-/* Floating animated cards */
-.animated-card {
-  transition: all 0.3s ease;
-  transform: translateY(0);
+.slide-left {
+  opacity: 0;
+  transform: translateX(-30px);
+  transition: .6s ease-out;
 }
-.animated-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+.slide-left.show {
+  opacity: 1;
+  transform: none;
 }
 
-/* ------------------------------
-   GOV DASHBOARD STYLES
------------------------------- */
+/* ---------------------------------
+   CARD
+---------------------------------- */
+.card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: var(--card-shadow);
+  border: 1px solid rgba(0, 60, 20, 0.06);
+}
 
-.gov-dashboard-layout {
+/* ---------------------------------
+   SCROLLER BOX
+---------------------------------- */
+.scroll-box {
+  max-height: 300px;
+  overflow-y: auto;
+  border-radius: 10px;
+  background: #ffffffaa;
+}
+
+.scroll-box::-webkit-scrollbar {
+  width: 7px;
+}
+.scroll-box::-webkit-scrollbar-thumb {
+  background: var(--g2);
+  border-radius: 10px;
+}
+
+/* ---------------------------------
+   GLASS MODAL BACKDROP
+---------------------------------- */
+.glass-modal-bg {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 10, 8, 0.46);
+  backdrop-filter: blur(7px) saturate(130%);
+  z-index: 70;
+}
+
+/* ---------------------------------
+   GLASS MODAL
+---------------------------------- */
+.glass-modal {
+  width: 95%;
+  max-width: 830px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.87);
   display: grid;
-  grid-template-columns: 270px minmax(0, 1fr);
-  gap: 1.75rem;
+  grid-template-columns: 1fr 1.1fr;
+  box-shadow: 0 14px 45px rgba(0, 20, 10, 0.35);
+  transform: translateY(20px) scale(.98);
+  opacity: 0;
+  transition: .25s ease;
+}
+
+.glass-modal.open {
+  transform: none;
+  opacity: 1;
+}
+
+/* LEFT SIDE */
+.glass-left {
+  padding: 30px;
+  background: linear-gradient(180deg, var(--g1), var(--g2));
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.glass-left img {
+  background: white;
+  border-radius: 12px;
+  padding: 8px;
+}
+
+.glass-left h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.glass-left p {
+  color: #ffffffdd;
+  font-size: 0.92rem;
+}
+
+/* RIGHT SIDE */
+.glass-right {
+  padding: 30px;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .glass-modal {
+    grid-template-columns: 1fr;
+    max-width: 92%;
+  }
+}
+
+/* CLOSE BUTTON */
+.modal-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+/* ---------------------------------
+   INPUT FIELDS
+---------------------------------- */
+.input-field {
+  border: 1px solid rgba(10, 80, 50, 0.15);
+  border-radius: 10px;
+  padding: 10px 12px;
+  width: 100%;
+  transition: .2s;
+}
+.input-field:focus {
+  border-color: var(--g2);
+  box-shadow: 0 0 0 2px rgba(15, 169, 104, 0.20);
+  outline: none;
+}
+
+/* ---------------------------------
+   APPLY MODAL
+---------------------------------- */
+.apply-modal-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.48);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+}
+
+.apply-modal {
+  width: 90%;
+  max-width: 380px;
+  background: #fff;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  animation: pop .25s ease-out;
+}
+
+@keyframes pop {
+  from { transform: scale(.94); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+/* ---------------------------------
+   SCROLL TOP BUTTON
+---------------------------------- */
+.scroll-top-btn {
+  position: fixed;
+  bottom: 26px;
+  right: 22px;
+  width: 48px;
+  height: 48px;
+  background: var(--g1);
+  color: white;
+  border-radius: 999px;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: .25s;
+  box-shadow: 0 6px 16px rgba(0, 60, 20, 0.25);
+}
+.scroll-top-btn:hover {
+  background: var(--g3);
+}
+
+/* ---------------------------------
+   WELCOME STRIP SECTION
+---------------------------------- */
+.welcome-strip {
+  background: linear-gradient(135deg, var(--soft), #ffffffdd);
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+.welcome-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 28px;
 }
 
 @media (max-width: 900px) {
-  .gov-dashboard-layout {
-    grid-template-columns: minmax(0, 1fr);
+  .welcome-grid {
+    grid-template-columns: 1fr;
   }
 }
 
-/* Sidebar */
-.gov-sidebar {
-  background: linear-gradient(160deg, var(--gov-green-dark), var(--gov-green));
-  color: #e9faf1;
-  border-radius: 1.3rem;
-  padding: 1.4rem 1.25rem 1.5rem;
-  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.28);
-  position: relative;
-  overflow: hidden;
-}
-
-.gov-sidebar::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at top left, #ffffff1a, transparent 60%);
-  opacity: 0.9;
-  pointer-events: none;
-}
-
-.gov-sidebar-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
-  position: relative;
-  z-index: 1;
-}
-
-.gov-sidebar-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.16);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-}
-
-.gov-sidebar-title {
-  font-weight: 700;
-  font-size: 1.05rem;
-}
-.gov-sidebar-sub {
-  font-size: 0.78rem;
-  opacity: 0.9;
-}
-
-.gov-sidebar-nav {
-  margin-top: 0.5rem;
-  position: relative;
-  z-index: 1;
-}
-
-.gov-nav-btn {
-  width: 100%;
-  text-align: left;
-  padding: 0.55rem 0.8rem;
-  border-radius: 0.75rem;
-  margin-bottom: 0.35rem;
-  font-size: 0.86rem;
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  background: transparent;
-  color: #f5fff9;
-  border: none;
-  cursor: pointer;
-  transition: all 0.18s ease;
-}
-
-.gov-nav-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.gov-nav-btn-active {
-  background: #ffffff;
-  color: var(--gov-green-dark);
-  box-shadow: 0 0 0 1px rgba(1, 75, 32, 0.1),
-    0 10px 20px rgba(1, 75, 32, 0.35);
-}
-
-.gov-nav-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.6);
-}
-.gov-nav-btn-active .gov-nav-dot {
-  background: var(--gov-green-dark);
-}
-
-.gov-sidebar-footer {
-  margin-top: 1.25rem;
-  position: relative;
-  z-index: 1;
-}
-
-.gov-role-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.78rem;
-  padding: 0.4rem 0.7rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.15);
-  margin-bottom: 0.7rem;
-}
-
-.dot-online {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: #4ade80;
-}
-
-.gov-logout-btn {
-  width: 100%;
-  background: linear-gradient(135deg, #ef4444, #b91c1c);
-  border: none;
-  border-radius: 0.9rem;
-  padding: 0.5rem 0.9rem;
+.welcome-chip {
+  background: var(--g2);
   color: white;
-  font-size: 0.86rem;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 12px 24px rgba(185, 28, 28, 0.45);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
-}
-
-.gov-logout-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 15px 30px rgba(185, 28, 28, 0.6);
-}
-
-/* Dashboard Cards */
-.gov-dashboard-main {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.gov-card {
-  border-radius: 1.4rem;
-  border-color: #e3f3e8;
-  background: linear-gradient(145deg, #ffffff, #f5fbf8);
-}
-
-.gov-card-animate {
-  animation: fadeUp 0.4s ease-out;
-}
-
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.gov-card-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  align-items: flex-start;
-  margin-bottom: 1.4rem;
-}
-
-.gov-card-eyebrow {
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #4b5563;
-}
-
-.gov-card-title {
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: var(--gov-green-dark);
-}
-
-.gov-card-sub {
-  font-size: 0.9rem;
-  color: #4b5563;
-  margin-top: 0.25rem;
-}
-
-.gov-badge-chip {
-  font-size: 0.78rem;
-  padding: 0.3rem 0.6rem;
-  border-radius: 999px;
-  background: #e0f2fe;
-  color: #075985;
-  font-weight: 600;
-}
-
-/* Metric Cards */
-.gov-metrics-grid {
-  display: grid;
-  gap: 1rem;
-}
-@media (min-width: 768px) {
-  .gov-metrics-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-.gov-metric-card {
-  border-radius: 1.1rem;
-  padding: 0.9rem 1rem;
-  background: #f9fafb;
-}
-
-.metric-label {
+  padding: 6px 14px;
+  border-radius: 20px;
+  display: inline-block;
   font-size: 0.82rem;
   font-weight: 600;
 }
-.metric-value {
-  margin-top: 0.3rem;
-  font-size: 1.8rem;
-  font-weight: 800;
-}
-.metric-value-small {
-  margin-top: 0.2rem;
-  font-size: 1rem;
-  font-weight: 700;
-}
-.metric-foot {
-  font-size: 0.8rem;
-  color: #4b5563;
-  margin-top: 0.2rem;
-}
 
-.metric-green {
-  background: #ecfdf3;
-  color: #166534;
-}
-.metric-amber {
-  background: #fffbeb;
-  color: #92400e;
-}
-.metric-blue {
-  background: #eff6ff;
-  color: #1d4ed8;
-}
-
-/* Profile Section */
-.gov-section-title {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--gov-green-dark);
-  margin-bottom: 0.2rem;
-}
-.gov-section-sub {
-  font-size: 0.9rem;
-  color: #4b5563;
-  margin-bottom: 1rem;
-}
-
-.gov-profile-grid {
-  display: grid;
-  gap: 0.8rem;
-}
-@media (min-width: 768px) {
-  .gov-profile-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-.gov-profile-address {
-  grid-column: 1 / -1;
-}
-
-.gov-label {
-  display: block;
-  font-size: 0.78rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #6b7280;
-}
-.gov-value {
-  font-size: 0.92rem;
-  margin-top: 0.15rem;
-}
-
-/* Courses Section */
-.gov-course-grid {
-  display: grid;
-  gap: 1rem;
-}
-@media (min-width: 768px) {
-  .gov-course-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-.gov-course-card {
-  border-radius: 1.1rem;
-  padding: 0.9rem 1rem;
-  background: white;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 10px 25px rgba(15, 118, 110, 0.06);
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
-}
-.gov-course-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 35px rgba(15, 118, 110, 0.15);
-}
-
-.gov-course-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.4rem;
-}
-.gov-course-code {
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.18rem 0.5rem;
-  border-radius: 999px;
-  background: #e5f3ff;
-  color: #1d4ed8;
-}
-.gov-course-level {
-  font-size: 0.7rem;
-  padding: 0.14rem 0.45rem;
-  border-radius: 999px;
-  border: 1px solid #d1fae5;
-  background: #ecfdf5;
-  color: #0f766e;
-}
-.gov-course-title {
-  font-weight: 700;
-  font-size: 0.98rem;
-  color: #064e3b;
-}
-.gov-course-meta {
-  font-size: 0.8rem;
-  color: #4b5563;
-}
-.gov-course-btn {
-  margin-top: 0.5rem;
-  padding: 0.4rem 0.7rem;
-  border-radius: 999px;
-  border: none;
-  font-size: 0.78rem;
-  font-weight: 600;
-  background: linear-gradient(135deg, #16a34a, #15803d);
-  color: white;
-  cursor: pointer;
-}
-
-/* ------------------------------
-   WELCOME BANNER
------------------------------- */
-
-.gov-welcome-banner {
-  border-radius: 1.3rem;
-  padding: 1.4rem 1.5rem;
-  background: linear-gradient(110deg, #ecfdf3, #e0f2fe);
-  border: 1px solid #d1fae5;
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  align-items: center;
-  box-shadow: 0 12px 35px rgba(16, 185, 129, 0.22);
-}
-
-.gov-banner-eyebrow {
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: #166534;
-}
-.gov-banner-title {
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: #064e3b;
-}
-.gov-banner-sub {
-  font-size: 0.9rem;
-  color: #374151;
-}
-.gov-banner-badge {
-  font-size: 0.82rem;
-  padding: 0.4rem 0.8rem;
-  border-radius: 999px;
-  background: rgba(15, 118, 110, 0.12);
-  color: #064e3b;
-  font-weight: 600;
-}
-.gov-banner-badge span {
-  font-weight: 800;
-}
-
-/* ------------------------------
-   AUTH WRAPPER
------------------------------- */
-
-.gov-auth-wrapper {
-  display: grid;
-  gap: 1.5rem;
-}
-@media (min-width: 900px) {
-  .gov-auth-wrapper {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.gov-auth-card {
-  border-radius: 1.4rem;
-  background: #ffffff;
-  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+/* ---------------------------------
+   AUTO-SCROLLING MARQUEE
+---------------------------------- */
+.course-marquee {
   overflow: hidden;
-  border: 1px solid #e5e7eb;
+  height: 62px;
+  margin-top: 14px;
+  margin-bottom: 22px;
+  position: relative;
+}
+
+.course-marquee-inner {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+  animation: vscroll 12s linear infinite;
 }
 
-.gov-auth-header {
-  padding: 1.2rem 1.4rem;
-  color: white;
-}
-.gov-auth-header-login {
-  background: linear-gradient(135deg, #14532d, #064e3b);
-}
-.gov-auth-header-register {
-  background: linear-gradient(135deg, #0f766e, #0369a1);
+@keyframes vscroll {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
 }
 
-.gov-auth-eyebrow {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-.gov-auth-title {
-  font-size: 1.2rem;
-  font-weight: 800;
-}
-.gov-auth-sub {
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
-  opacity: 0.9;
+.course-pill {
+  background: #fff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  box-shadow: var(--card-shadow);
+  border: 1px solid rgba(0,60,20,0.06);
 }
 
-.gov-auth-body {
-  padding: 1.1rem 1.4rem 1.3rem;
-}
-
-/* ------------------------------
-   FLOATING GLASS CONTACT BAR
------------------------------- */
-
-.floating-contact-bar {
-  position: fixed;
-  z-index: 999;
-  right: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-/* Glassmorphism pill */
-.contact-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.24),
-    rgba(255, 255, 255, 0.06)
-  );
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.75);
-  width: 42px;
-  height: 42px;
-  box-shadow: 0 16px 35px rgba(15, 23, 42, 0.4);
-  color: #0f172a;
-  text-decoration: none;
-  transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
-}
-
-.contact-pill:hover {
-  transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.55);
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.85),
-    rgba(255, 255, 255, 0.45)
-  );
-}
-
-.contact-pill-icon {
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-/* wider "Contact" pill */
-.contact-pill-wide {
-  width: auto;
-  padding: 0 0.8rem 0 0.4rem;
-  gap: 0.25rem;
-}
-.contact-pill-label {
-  font-size: 0.78rem;
+.course-pill-title {
   font-weight: 600;
+  color: var(--g1);
+}
+.course-pill-meta {
+  font-size: 11px;
+  color: var(--muted);
+  display: flex;
+  gap: 4px;
 }
 
-/* Small float animation */
-.contact-pill:nth-child(1) {
-  animation: floatUpDown 3s ease-in-out infinite;
+/* ---------------------------------
+   BUTTONS
+---------------------------------- */
+.btn-schedule {
+  background: var(--g1);
+  color: white;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: .25s;
 }
-.contact-pill:nth-child(2) {
-  animation: floatUpDown 3.4s ease-in-out infinite;
-}
-.contact-pill:nth-child(3) {
-  animation: floatUpDown 3.8s ease-in-out infinite;
-}
-.contact-pill:nth-child(4) {
-  animation: floatUpDown 4.2s ease-in-out infinite;
-}
-.contact-pill:nth-child(5) {
-  animation: floatUpDown 4.6s ease-in-out infinite;
-}
-.contact-pill:nth-child(6) {
-  animation: floatUpDown 5s ease-in-out infinite;
+.btn-schedule:hover {
+  background: var(--g3);
 }
 
-@keyframes floatUpDown {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-4px);
-  }
+.btn-green {
+  background: var(--g2);
+  color: white;
+  border-radius: 10px;
+  transition: .25s;
+}
+.btn-green:hover {
+  background: var(--g1);
 }
 
-/* Mobile: move bar to bottom-right row */
-@media (max-width: 768px) {
-  .floating-contact-bar {
-    right: 0.6rem;
-    bottom: 0.7rem;
-    top: auto;
-    transform: none;
-    flex-direction: row;
-    gap: 0.35rem;
-  }
-  .contact-pill {
-    width: 38px;
-    height: 38px;
-    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.5);
-  }
-  .contact-pill-wide {
-    display: none; /* hide long pill on small screens */
-  }
+.btn-outline-light {
+  border: 1px solid var(--g2);
+  color: var(--g1);
+  border-radius: 10px;
+  transition: .2s;
+}
+.btn-outline-light:hover {
+  background: var(--soft);
+}
+
+/* ---------------------------------
+   INPUTS (GENERAL)
+---------------------------------- */
+.input-box {
+  border: 1px solid rgba(0, 80, 40, 0.18);
+  padding: 10px 12px;
+  border-radius: 10px;
+  width: 100%;
+  transition: .25s;
+}
+.input-box:focus {
+  border-color: var(--g2);
+  box-shadow: 0 0 0 2px rgba(15,169,104,0.20);
+  outline: none;
+}
+
+/* ---------------------------------
+   PAGE TITLE
+---------------------------------- */
+.page-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--g1);
+  margin-bottom: 1.2rem;
+}
+
+/* ---------------------------------
+   AUTH GRADIENT SECTION
+---------------------------------- */
+.auth-gradient-section {
+  background: linear-gradient(135deg, var(--g1), var(--g2));
+  border-radius: 18px;
+  padding: 30px;
+  color: white;
 }
