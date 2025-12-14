@@ -40,3 +40,4 @@ const applicationSchema = new mongoose.Schema(
 applicationSchema.set("autoIndex", false);
 
 module.exports = mongoose.model("Application", applicationSchema);
+  
