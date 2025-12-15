@@ -117,6 +117,7 @@ body {
   );
   padding: 8px 12px;
 }
+<<<<<<< HEAD
 /* APPLY MODAL BACKDROP */
 .apply-bg {
   position: fixed;
@@ -194,6 +195,8 @@ body {
     grid-template-columns: 1fr;
   }
 }
+=======
+>>>>>>> 4df6b5b47b79db96905c7a85efb35dfface4fa34
 
 /* Dots */
 .slide-dots {

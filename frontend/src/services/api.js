@@ -26,6 +26,7 @@ export async function registerUser(payload) {
   return data;
 }
 
+<<<<<<< HEAD
 /* ================= PROFILE ================= */
 
 export async function getProfile() {
@@ -36,6 +37,27 @@ export async function getProfile() {
   }
 
   const res = await fetch(`${API_BASE}/auth/me`, {
+=======
+/* ================= APPLICATIONS ================= */
+
+export async function submitApplicationAPI(payload) {
+  const res = await fetch(`${API_BASE}/applications/submit`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw data;
+  return data;
+}
+export async function getProfile() {
+  const token = localStorage.getItem("token");
+
+  if (!token) throw new Error("No token");
+
+  const res = await fetch("http://localhost:5000/api/auth/me", {
+>>>>>>> 4df6b5b47b79db96905c7a85efb35dfface4fa34
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -50,6 +72,7 @@ export async function getProfile() {
 
   return data;
 }
+<<<<<<< HEAD
 
 /* ================= APPLICATIONS ================= */
 
@@ -71,3 +94,5 @@ export async function submitApplicationAPI(payload) {
   if (!res.ok) throw data;
   return data;
 }
+=======
+>>>>>>> 4df6b5b47b79db96905c7a85efb35dfface4fa34
