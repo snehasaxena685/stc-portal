@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 export default function PaymentModal({
   open,
+  amount,
   onClose,
   onConfirmPayment,
   onPayLater,
@@ -10,16 +11,19 @@ export default function PaymentModal({
 
   if (!open) return null;
 
-  // Replace with YOUR real UPI ID
   const UPI_ID = "snehasaxena685@okicici";
   const PAYEE_NAME = "CSIR-CFTRI Training";
 
   const gpayUrl = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(
     PAYEE_NAME
-  )}&cu=INR`;
+  )}&am=${amount}&cu=INR`;
 
   const openGooglePay = () => {
-    window.location.href = gpayUrl;
+    if (/Android|iPhone/i.test(navigator.userAgent)) {
+      window.location.href = gpayUrl;
+    } else {
+      alert("Please scan the QR code using your mobile UPI app.");
+    }
   };
 
   const confirmPayment = () => {
@@ -38,14 +42,17 @@ export default function PaymentModal({
           Training Fee Payment
         </h3>
 
+        <p style={{ marginTop: 6 }}>
+          Amount to Pay: <strong>₹{amount}</strong>
+        </p>
+
         <p className="text-sm text-gray-700 mt-2">
           Please pay the training fee manually using Google Pay / UPI.
         </p>
 
-        {/* QR IMAGE */}
         <div style={{ textAlign: "center", margin: "16px 0" }}>
           <img
-            src="/images/qr.jpg"   // 🔴 put your QR image here
+            src="/images/qr.jpg"
             alt="CFTRI UPI QR"
             style={{ width: 180 }}
           />
@@ -54,12 +61,10 @@ export default function PaymentModal({
           </p>
         </div>
 
-        {/* OPEN GPAY */}
         <button className="btn-apply" onClick={openGooglePay}>
           Open Google Pay
         </button>
 
-        {/* TXN ID INPUT */}
         <input
           type="text"
           placeholder="Enter UPI Transaction ID"
@@ -74,7 +79,6 @@ export default function PaymentModal({
           }}
         />
 
-        {/* CONFIRM */}
         <button
           style={{
             marginTop: 10,
@@ -90,7 +94,6 @@ export default function PaymentModal({
           Confirm Payment
         </button>
 
-        {/* PAY LATER */}
         <button
           style={{
             marginTop: 10,

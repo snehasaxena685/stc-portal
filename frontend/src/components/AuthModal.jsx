@@ -137,13 +137,8 @@ export default function AuthModal({
                   <input
                     className="input-field"
                     value={phone}
-<<<<<<< HEAD
                     onChange={(e) => setPhone(e.target.value)} 
                   required/>
-=======
-                    onChange={(e) => setPhone(e.target.value)}
-                  />
->>>>>>> 4df6b5b47b79db96905c7a85efb35dfface4fa34
                 </div>
               </div>
 
