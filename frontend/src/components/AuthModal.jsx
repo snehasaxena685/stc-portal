@@ -141,15 +141,30 @@ export default function AuthModal({
                   required/>
                 </div>
               </div>
+<div className="mb-2">
+  <div className="label-sm">Nationality *</div>
+  <select
+    className="input-field"
+    value={nationality}
+    onChange={(e) => setNationality(e.target.value)}
+    required
+  >
+    <option value="">Select Nationality</option>
+    <option value="Indian">Indian</option>
+    <option value="Afghan">Afghan</option>
+    <option value="American">American</option>
+    <option value="Australian">Australian</option>
+    <option value="Bangladeshi">Bangladeshi</option>
+    <option value="British">British</option>
+    <option value="Canadian">Canadian</option>
+    <option value="Chinese">Chinese</option>
+    <option value="German">German</option>
+    <option value="Nepalese">Nepalese</option>
+    <option value="Sri Lankan">Sri Lankan</option>
+    <option value="Other">Other</option>
+  </select>
+</div>
 
-              <div className="mb-2">
-                <div className="label-sm">Nationality *</div>
-                <input
-                  className="input-field"
-                  value={nationality}
-                  onChange={(e) => setNationality(e.target.value)}
-                />
-              </div>
 
               <div className="grid-two mb-2">
                 <div>

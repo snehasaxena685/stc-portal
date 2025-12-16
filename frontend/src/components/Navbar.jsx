@@ -5,8 +5,11 @@ export default function Navbar({
   navOpen,
   setNavOpen,
   openLogin,
+  openRegister,
   handleLogout,
+  setScheduleOpen, // ✅ ADD THIS
 }) {
+
   return (
     <header className="navbar-stc">
       <div className="navbar-inner">
@@ -33,69 +36,73 @@ export default function Navbar({
 
         {/* LINKS */}
         <nav className={`navbar-links ${navOpen ? "open" : ""}`}>
-          <span
-            className="navbar-link"
-            onClick={() =>
-              document.getElementById("home-section")?.scrollIntoView({
-                behavior: "smooth",
-              })
-            }
-          >
-            Home
-          </span>
+  <span
+    className="navbar-link"
+    onClick={() => {
+      document.getElementById("home-section")?.scrollIntoView({
+        behavior: "smooth",
+      });
+      setNavOpen(false);
+    }}
+  >
+    Home
+  </span>
 
-          <span
-            className="navbar-link"
-            onClick={() =>
-              document.getElementById("about-section")?.scrollIntoView({
-                behavior: "smooth",
-              })
-            }
-          >
-            About
-          </span>
+  <span
+    className="navbar-link"
+    onClick={() => {
+      document.getElementById("about-section")?.scrollIntoView({
+        behavior: "smooth",
+      });
+      setNavOpen(false);
+    }}
+  >
+    About
+  </span>
 
-          <span
-            className="navbar-link"
-            onClick={() =>
-              document.getElementById("courses-section")?.scrollIntoView({
-                behavior: "smooth",
-              })
-            }
-          >
-            Courses
-          </span>
+  <span
+    className="navbar-link"
+    onClick={() => {
+      document.getElementById("courses-section")?.scrollIntoView({
+        behavior: "smooth",
+      });
+      setNavOpen(false);
+    }}
+  >
+    Courses
+  </span>
 
-          <span
-            className="navbar-link"
-            onClick={() =>
-              document.getElementById("schedule-section")?.scrollIntoView({
-                behavior: "smooth",
-              })
-            }
-          >
-            Schedule
-          </span>
+  {/* ✅ FIXED SCHEDULE BUTTON */}
+  <span
+    className="navbar-link"
+    onClick={() => {
+      setScheduleOpen(true);
+      setNavOpen(false);
+    }}
+  >
+    Schedule (2025–2026)
+  </span>
 
-          {/* RIGHT */}
-          <div className="navbar-right">
-            {userProfile && (
-              <div className="navbar-hello">
-                Hello, <strong>{userProfile.name}</strong>
-              </div>
-            )}
+  {/* RIGHT */}
+  <div className="navbar-right">
+    {userProfile && (
+      <div className="navbar-hello">
+        Hello, <strong>{userProfile.name}</strong>
+      </div>
+    )}
 
-            {!userProfile ? (
-              <button className="navbar-cta" onClick={openLogin}>
-                Sign In / Register
-              </button>
-            ) : (
-              <button className="navbar-cta" onClick={handleLogout}>
-                Logout
-              </button>
-            )}
-          </div>
-        </nav>
+    {!userProfile ? (
+      <button className="navbar-cta" onClick={openLogin}>
+        Sign In / Register
+      </button>
+    ) : (
+      <button className="navbar-cta" onClick={handleLogout}>
+        Logout
+      </button>
+    )}
+  </div>
+</nav>
+
       </div>
     </header>
   );

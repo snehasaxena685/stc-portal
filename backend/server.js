@@ -24,6 +24,7 @@ app.use(express.json());
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/courses", require("./routes/courseRoutes"));
 app.use("/api/applications", require("./routes/applications"));
+app.use("/api/users", require("./routes/users"));
 
 /* ================= SERVE UPLOADS ================= */
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

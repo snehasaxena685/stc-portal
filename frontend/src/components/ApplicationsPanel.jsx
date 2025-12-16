@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function ApplicationsPanel({ applications }) {
+export default function ApplicationsPanel({ applications, onPayNow }) {
   if (!applications.length) {
     return (
       <div className="card-stc">
@@ -29,6 +29,7 @@ export default function ApplicationsPanel({ applications }) {
               <th>Status</th>
               <th>Payment</th>
               <th>Transaction</th>
+              <th>Action</th>
             </tr>
           </thead>
 
@@ -40,6 +41,29 @@ export default function ApplicationsPanel({ applications }) {
                 <td>{a.status}</td>
                 <td>{a.payment}</td>
                 <td>{a.txnId || "-"}</td>
+
+                <td>
+                  {a.payment === "Pending" ? (
+                    <button
+                      onClick={() => onPayNow(i)}
+                      style={{
+                        padding: "6px 12px",
+                        background: "#16a34a",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        fontSize: "12px",
+                      }}
+                    >
+                      Pay Now
+                    </button>
+                  ) : (
+                    <span style={{ color: "#16a34a", fontWeight: 600 }}>
+                      Paid
+                    </span>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>

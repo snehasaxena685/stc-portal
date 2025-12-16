@@ -4,10 +4,10 @@ const jwt = require("jsonwebtoken");
 
 const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, phone, address, nationality } = req.body;
 
     if (!name || !email || !password) {
-      return res.status(400).json({ msg: "All fields required" });
+      return res.status(400).json({ msg: "Name, email & password required" });
     }
 
     const exists = await User.findOne({ email });
@@ -17,13 +17,27 @@ const register = async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
 
-    await User.create({
+    const user = await User.create({
       name,
       email,
       password: hashed,
+      phone: phone || "",
+      address: address || "",
+      nationality: nationality || "",
+      avatar: "",
     });
 
-    res.json({ msg: "Registration successful" });
+    res.json({
+      msg: "Registration successful",
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+        nationality: user.nationality,
+      },
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: "Server error" });
@@ -51,13 +65,18 @@ const login = async (req, res) => {
     );
 
     res.json({
-      token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-      },
-    });
+  token,
+  user: {
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    phone: user.phone || "",
+    address: user.address || "",
+    nationality: user.nationality || "",
+    avatar: user.avatar || "",
+  },
+});
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: "Server error" });

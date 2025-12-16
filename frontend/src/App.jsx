@@ -1,5 +1,12 @@
 
     import React, { useEffect, useState } from "react";
+    import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
+import ScheduleModal from "./components/ScheduleModal";
+
+import { uploadAvatarAPI } from "./services/api";
+
     import Navbar from "./components/Navbar";
     import Footer from "./components/Footer";
     import SplashScreen from "./components/SplashScreen";
@@ -40,8 +47,10 @@ import ApplicationsPanel from "./components/ApplicationsPanel";
 /* ============================================================
    MAIN APP COMPONENT
 ============================================================ */
-export default function App() {  /* TABLE CELL STYLES (for schedule table) */
-  const th = {
+export default function App() { 
+   /* TABLE CELL STYLES (for schedule table) */
+  
+   const th = {
     padding: "10px",
     fontSize: "13px",
     color: "#064e3b",
@@ -54,6 +63,9 @@ export default function App() {  /* TABLE CELL STYLES (for schedule table) */
     color: "#374151",
     verticalAlign: "top",
   };
+ 
+
+
 
   // inject CSS once
     // useEffect(() => {
@@ -75,6 +87,7 @@ export default function App() {  /* TABLE CELL STYLES (for schedule table) */
 };
 
   /* GLOBAL / UI STATES */
+  const [scheduleOpen, setScheduleOpen] = useState(false);
   const [showTopBtn, setShowTopBtn] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
@@ -83,6 +96,18 @@ export default function App() {  /* TABLE CELL STYLES (for schedule table) */
 const [showSplash, setShowSplash] = useState(true);
 const [paymentOpen, setPaymentOpen] = useState(false);
 const [pendingAppIndex, setPendingAppIndex] = useState(null);
+
+useEffect(() => {
+  if (scheduleOpen) {
+    document.body.style.overflow = "hidden";
+  } else {
+    document.body.style.overflow = "";
+  }
+
+  return () => {
+    document.body.style.overflow = "";
+  };
+}, [scheduleOpen]);
 
 
     /* LOGIN / REGISTER STATES */
@@ -121,6 +146,7 @@ const [pendingAppIndex, setPendingAppIndex] = useState(null);
     const [selectedCourse, setSelectedCourse] = useState(null);
 
     /* APPLY FORM STATE */
+    
     const [applyForm, setApplyForm] = useState({
       fullName: "",
       email: "",
@@ -187,21 +213,19 @@ const [pendingAppIndex, setPendingAppIndex] = useState(null);
       const data = await getProfile();
 
       const profile = {
-        _id: data.user._id,
-        name: data.user.name,
-        email: data.user.email,
-        phone: data.user.phone || "",
-        avatar: data.user.avatar || "",
-        address: data.user.address || "",
-        nationality: data.user.nationality || "",
-        lastLogin: new Date().toLocaleString(),
-      };
+  _id: data.user._id,
+  name: data.user.name,
+  email: data.user.email,
+  phone: data.user.phone || "",
+  address: data.user.address || "",
+  nationality: data.user.nationality || "",
+  avatar: data.user.avatar || "",
+  lastLogin: new Date().toLocaleString(),
+};
 
-      setUserProfile(profile);
-      localStorage.setItem(
-        "cftri_user_profile",
-        JSON.stringify(profile)
-      );
+setUserProfile(profile);
+localStorage.setItem("cftri_user_profile", JSON.stringify(profile));
+
     } catch (err) {
       // logout ONLY if token is invalid
       localStorage.removeItem("token");
@@ -229,35 +253,25 @@ const [pendingAppIndex, setPendingAppIndex] = useState(null);
 
     /* ---------------- LOGIN API ---------------- */
   const handleLogin = async () => {
-    if (!loginEmail || !loginPassword) {
-      showToast("Please enter email and password.", "error");
-      return;
-    }
+  const data = await loginUser(loginEmail, loginPassword);
 
-    try {
-      const data = await loginUser(loginEmail, loginPassword);
+  localStorage.setItem("token", data.token);
 
-      localStorage.setItem("token", data.token);
-
-      const profile = {
-        _id: data.user?._id,
-        name: data.user?.name || loginEmail.split("@")[0],
-        email: data.user?.email || loginEmail,
-        phone: data.user?.phone || "",
-        avatar: data.user?.avatar || "",
-        address: data.user?.address || "",
-        nationality: data.user?.nationality || "",
-        lastLogin: new Date().toLocaleString(),
-      };
-
-      saveProfile(profile);
-      setAuthOpen(false);
-      showToast("Login successful.", "success");
-    } catch (err) {
-      showToast(err.msg || "Login failed.", "error");
-    }
+  const profile = {
+    _id: data.user._id,
+    name: data.user.name,
+    email: data.user.email,
+    phone: data.user.phone || "",
+    address: data.user.address || "",
+    nationality: data.user.nationality || "",
+    avatar: data.user.avatar || "",
+    lastLogin: new Date().toLocaleString(),
   };
 
+  setUserProfile(profile);
+  localStorage.setItem("cftri_user_profile", JSON.stringify(profile));
+  setAuthOpen(false);
+};
     /* -------------- REGISTER API --------------- */
     const handleRegister = async () => {
       if (!fullName || !regEmail || !regPassword) {
@@ -302,11 +316,22 @@ const [pendingAppIndex, setPendingAppIndex] = useState(null);
       setNavOpen(false);
     };
     const openRegister = () => {
-      setAuthMode("register");
-      setAuthOpen(true);
-      setNavOpen(false);
-    };
+  setAuthMode("register");
 
+  // 🔥 reset old user data
+  setFullName("");
+  setRegEmail("");
+  setRegPassword("");
+  setConfirmPassword("");
+  setAddress("");
+  setPhone("");
+  setNationality("Indian"); // default
+
+  setAuthOpen(true);
+  setNavOpen(false);
+};
+
+    
     /* APPLY BUTTON CLICK */
     const handleApplyClick = (course) => {
       if (!userProfile) {
@@ -343,6 +368,12 @@ const handleConfirmPayment = (txnId) => {
   setPaymentOpen(false);
   showToast("Payment recorded successfully!", "success");
 };
+/* ================= PAY NOW HANDLER ================= */
+const handlePayNow = (index) => {
+  setPendingAppIndex(index);
+  setPaymentOpen(true);
+};
+
 
     /* SUBMIT APPLICATION → BACKEND */
   const submitApplication = async () => {
@@ -397,6 +428,58 @@ const handleConfirmPayment = (txnId) => {
     /* SCROLL TO TOP */
     const scrollToTop = () =>
       window.scrollTo({ top: 0, behavior: "smooth" });
+// ================= DOWNLOAD FULL SCHEDULE (PDF) =================
+const downloadSchedulePDF = () => {
+  const doc = new jsPDF("p", "mm", "a4");
+
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.text(
+    "CSIR – CENTRAL FOOD TECHNOLOGICAL RESEARCH INSTITUTE",
+    105,
+    15,
+    { align: "center" }
+  );
+
+  doc.text("Full Training Schedule – 2025–2026", 105, 23, {
+    align: "center",
+  });
+
+  const tableColumn = [
+    "Code",
+    "Course Title",
+    "Dates",
+    "Duration",
+    "Centre",
+  ];
+
+  const tableRows = fullSchedule.map((item) => [
+    item.code,
+    item.title,
+    item.dates,
+    item.duration,
+    item.centre,
+  ]);
+
+  autoTable(doc, {
+    startY: 30,
+    head: [tableColumn],
+    body: tableRows,
+    styles: {
+      fontSize: 9,
+      cellPadding: 3,
+    },
+    headStyles: {
+      fillColor: [6, 95, 70], // CFTRI green
+      textColor: 255,
+    },
+  });
+
+  doc.save("CFTRI_Training_Schedule_2025-2026.pdf");
+};
+  
+  
+  
 
     /* UPCOMING TRAININGS */
     const upcomingTrainings = [
@@ -425,67 +508,297 @@ const handleConfirmPayment = (txnId) => {
         code: "STC-04",
       },
     ];
-  /* ================= FULL TRAINING SCHEDULE (STATIC – 2025) ================= */
-  const fullSchedule = [
-    {
-      code: "STCH-01",
-      title: "Training Programme on Fruits and Vegetable Products",
-      dates: "15-04-2025 to 17-04-2025",
-      duration: "3 Days",
-      centre: "Hyderabad",
-    },
-    {
-      code: "STCL-02",
-      title: "Training Programme on Fruits & Vegetables Processing (Batch 1)",
-      dates: "22-04-2025 to 24-04-2025",
-      duration: "3 Days",
-      centre: "Lucknow",
-    },
-    {
-      code: "STC-06",
-      title:
-        "Fumigation, Prophylaxis and Pest Management Technique for Stored Food Commodities (Batch 1)",
-      dates: "16-05-2025 to 30-05-2025",
-      duration: "15 Days",
-      centre: "CFTRI",
-    },
-    {
-      code: "STCH-11",
-      title: "Training Programme on Millet Products",
-      dates: "11-06-2025 to 13-06-2025",
-      duration: "3 Days",
-      centre: "Hyderabad",
-    },
-    {
-      code: "STC-12",
-      title:
-        "Integrated Solid Waste & Wastewater Management in the Food Industry",
-      dates: "16-06-2025 to 20-06-2025",
-      duration: "5 Days",
-      centre: "CFTRI",
-    },
-    {
-      code: "STC-21",
-      title: "Spices Processing and Value Addition",
-      dates: "04-08-2025 to 08-08-2025",
-      duration: "5 Days",
-      centre: "CFTRI",
-    },
-    {
-      code: "STC-24",
-      title: "Baking Science and Technology",
-      dates: "18-08-2025 to 22-08-2025",
-      duration: "5 Days",
-      centre: "CFTRI",
-    },
-    {
-      code: "STC-30",
-      title: "Training Programme on Grain Processing and Machinery",
-      dates: "10-11-2025 to 14-11-2025",
-      duration: "5 Days",
-      centre: "CFTRI",
-    },
-  ];
+
+
+  /* ================= FULL TRAINING SCHEDULE (2025–2026) ================= */
+const fullSchedule = [
+  {
+    code: "STCH-01",
+    title: "Training Programme on Fruits and Vegetable Products",
+    dates: "15-04-2025 to 17-04-2025",
+    duration: "3 Days",
+    centre: "Hyderabad",
+  },
+  {
+    code: "STCL-02",
+    title: "Training Programme on Fruits and Vegetables Processing (Batch 1)",
+    dates: "22-04-2025 to 24-04-2025",
+    duration: "3 Days",
+    centre: "Lucknow",
+  },
+  {
+    code: "STC-05",
+    title: "Training Program on Cell Culture and Molecular Biology Technique",
+    dates: "13-05-2025 to 15-05-2025",
+    duration: "3 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-03",
+    title: "Mammalian Cell Culture Technique",
+    dates: "14-05-2025 to 16-05-2025",
+    duration: "3 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STCH-04",
+    title: "Training Programme on Mango Product",
+    dates: "14-05-2025 to 16-05-2025",
+    duration: "3 Days",
+    centre: "Hyderabad",
+  },
+  {
+    code: "STC-06",
+    title:
+      "Training Program on Fumigation, Prophylaxis and Pest Management Technique for Stored Food Commodities (Batch 1)",
+    dates: "16-05-2025 to 30-05-2025",
+    duration: "15 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-07",
+    title: "Training Program on Fruits & Vegetables Processing (Batch 2)",
+    dates: "21-05-2025 to 23-05-2025",
+    duration: "3 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STCL-08",
+    title: "Training Program on Bakery and Confectionery Products (Batch 1)",
+    dates: "03-06-2025 to 05-06-2025",
+    duration: "3 Days",
+    centre: "Lucknow",
+  },
+  {
+    code: "STC-09",
+    title:
+      "Training Program on Laboratory Animal Technique, Ethics and Welfare",
+    dates: "09-06-2025 to 13-06-2025",
+    duration: "5 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-10",
+    title: "Training Program on Analytical Technique for Spices",
+    dates: "09-06-2025 to 13-06-2025",
+    duration: "5 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STCH-11",
+    title: "Training Programme on Millet Products",
+    dates: "11-06-2025 to 13-06-2025",
+    duration: "3 Days",
+    centre: "Hyderabad",
+  },
+  {
+    code: "STC-12",
+    title:
+      "Integrated Solid Waste and Wastewater Management in the Food Industry",
+    dates: "16-06-2025 to 20-06-2025",
+    duration: "5 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-13",
+    title:
+      "Essentials of Packaging Technology for Thermal Processing Applications in Extension of Shelf Life and Food Safety",
+    dates: "23-06-2025 to 25-06-2025",
+    duration: "3 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-14",
+    title:
+      "Training Program on Ginger and Tamarind Technologies and Value Addition",
+    dates: "02-07-2025 to 04-07-2025",
+    duration: "3 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-16",
+    title:
+      "Training Programme on Basics in Flour Milling and Quality Evaluation of Flour",
+    dates: "07-07-2025 to 11-07-2025",
+    duration: "5 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STCL-15",
+    title: "Training Program on Bakery Products (Batch 2)",
+    dates: "08-07-2025 to 10-07-2025",
+    duration: "3 Days",
+    centre: "Lucknow",
+  },
+  {
+    code: "STC-17",
+    title:
+      "Training Program on Sensory Analysis – An Approach to Consumer Preference",
+    dates: "16-07-2025 to 18-07-2025",
+    duration: "3 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-18",
+    title:
+      "Training Programme on Techniques in Algal and Plant Biotechnology",
+    dates: "21-07-2025 to 23-07-2025",
+    duration: "3 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-20",
+    title: "Post Harvest Technologies for Fruits and Vegetables",
+    dates: "21-07-2025 to 01-08-2025",
+    duration: "12 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-19",
+    title: "Techniques Related to Molecular Nutrition",
+    dates: "23-07-2025 to 25-07-2025",
+    duration: "3 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-21",
+    title: "Spices Processing and Value Addition",
+    dates: "04-08-2025 to 08-08-2025",
+    duration: "5 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-22",
+    title: "Strategies for Probiotic Dairy Product Development",
+    dates: "11-08-2025 to 13-08-2025",
+    duration: "3 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-23",
+    title:
+      "Chromatographic Techniques (GC, HPLC, UHPLC) and Analytical Approaches in Food Analysis",
+    dates: "18-08-2025 to 22-08-2025",
+    duration: "5 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-24",
+    title: "Baking Science and Technology",
+    dates: "18-08-2025 to 22-08-2025",
+    duration: "5 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-25",
+    title: "Grain Process & Products for Health & Wellness",
+    dates: "01-09-2025 to 03-09-2025",
+    duration: "3 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-26",
+    title:
+      "Advance in Value Addition of Meat, Poultry and Fish Products",
+    dates: "08-09-2025 to 12-09-2025",
+    duration: "5 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-27",
+    title:
+      "Fumigation, Prophylaxis and Pest Management Technique for Stored Food Commodities (Batch 2)",
+    dates: "12-09-2025 to 26-09-2025",
+    duration: "15 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-28",
+    title:
+      "Advance in Laboratory Animal Science: Technique, Ethics and Welfare",
+    dates: "13-10-2025 to 15-10-2025",
+    duration: "3 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-29",
+    title: "Training Program on Tomato Product",
+    dates: "29-10-2025 to 31-10-2025",
+    duration: "3 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-30",
+    title: "Training Program on Grain Processing and Machinery",
+    dates: "10-11-2025 to 14-11-2025",
+    duration: "5 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-31",
+    title: "Application of Nanotechnology in Food Industry",
+    dates: "18-11-2025 to 20-11-2025",
+    duration: "3 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STCH-32",
+    title: "Training Program on Quality Control Analysis of Foods",
+    dates: "19-11-2025 to 21-11-2025",
+    duration: "3 Days",
+    centre: "Hyderabad",
+  },
+  {
+    code: "STC-33",
+    title:
+      "Training Program on Advanced Techniques in Microbial Pathogen & Toxin Analysis",
+    dates: "01-12-2025 to 05-12-2025",
+    duration: "5 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-34",
+    title:
+      "Fumigation, Prophylaxis and Pest Management Technique for Stored Food Commodities (Batch 3)",
+    dates: "05-12-2025 to 19-12-2025",
+    duration: "15 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-35",
+    title: "Nutri-Cereal Process & Products Technology",
+    dates: "08-12-2025 to 12-12-2025",
+    duration: "5 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-36",
+    title:
+      "Advanced Techniques in Food Analysis & Research (GC-MS, LC-HRMS/MS, LC-ICP-MS, IR-MS, NMR, E-Nose & E-Tongue)",
+    dates: "05-01-2026 to 09-01-2026",
+    duration: "5 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-37",
+    title:
+      "Development of Probiotic Millet Beverage and Probiotic Millet Curd",
+    dates: "07-01-2026 to 09-01-2026",
+    duration: "3 Days",
+    centre: "CFTRI",
+  },
+  {
+    code: "STC-38",
+    title:
+      "Extraction and Quality Assurance of Edible Fats & Oils",
+    dates: "21-01-2026 to 23-02-2026",
+    duration: "30 Days",
+    centre: "CFTRI",
+  },
+];
+
+  
+
   {/* ================= FULL SCHEDULE TABLE ================= */}
   {/* <div className="card-stc" style={{ marginTop: 20 }}>
     <h3 className="text-lg font-semibold text-green-900 mb-2">
@@ -622,52 +935,62 @@ const handleConfirmPayment = (txnId) => {
     /* ------------------ PROFILE EDIT / UPLOAD HELPERS ------------------ */
 
     // open edit modal and prefill tempProfile
-    const openProfileEdit = () => {
-      setTempProfile({
-        name: userProfile?.name || "",
-        email: userProfile?.email || "",
-        phone: userProfile?.phone || "",
-        address: userProfile?.address || "",
-        nationality: userProfile?.nationality || "",
-        avatar: userProfile?.avatar || "",
-      });
-      setAvatarUploadSuccess(false);
-      setProfileEditOpen(true);
-    };
+const openProfileEdit = () => {
+  if (!userProfile) {
+    showToast("Profile not loaded yet", "error");
+    return;
+  }
 
-    // handle avatar file selection, convert to base64 and store in tempProfile
-  const handleAvatarChange = (e) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
+  setTempProfile({
+    name: userProfile.name,
+    email: userProfile.email,
+    phone: userProfile.phone || "",
+    address: userProfile.address || "",
+    nationality: userProfile.nationality || "Indian",
+    avatar: userProfile.avatar || "",
+  });
 
-    const allowed = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
-    if (!allowed.includes(f.type)) {
-      showToast("Please upload a PNG / JPG / WEBP image.", "error");
-      return;
-    }
+  setAvatarUploadSuccess(false);
+  setProfileEditOpen(true);
+};
 
-    setAvatarFileName(f.name);
 
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const b64 = ev.target.result;
+  const handleAvatarChange = async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
 
-      // Update temp modal preview
-      setTempProfile((prev) => ({ ...prev, avatar: b64 }));
+  const allowed = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+  if (!allowed.includes(file.type)) {
+    showToast("Only PNG / JPG / WEBP images allowed", "error");
+    return;
+  }
 
-      // Update actual active profile
-      const updated = { ...userProfile, avatar: b64 };
+  const reader = new FileReader();
+
+  reader.onload = async () => {
+    try {
+      const data = await uploadAvatarAPI(reader.result); // ✅ correct API
+
+      const updated = { ...userProfile, avatar: data.avatar };
       setUserProfile(updated);
-      localStorage.setItem("cftri_user_profile", JSON.stringify(updated));
+      localStorage.setItem(
+        "cftri_user_profile",
+        JSON.stringify(updated)
+      );
 
+      setTempProfile((p) => ({ ...p, avatar: data.avatar }));
       setAvatarUploadSuccess(true);
-      showToast("Photo updated successfully!", "success");
-    };
 
-    reader.onerror = () => showToast("Failed to read file.", "error");
-
-    reader.readAsDataURL(f);
+      showToast("Photo uploaded successfully", "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Photo upload failed", "error");
+    }
   };
+
+  reader.readAsDataURL(file);
+};
+
 
     // save edits to localStorage and userProfile
     const saveProfileEdits = () => {
@@ -731,14 +1054,23 @@ const handleConfirmPayment = (txnId) => {
         <ToastContainer toasts={toasts} />
 
       {/* ================= NAVBAR (COMPONENT) ================= */}
-  <Navbar
-    userProfile={userProfile}
-    navOpen={navOpen}
-    setNavOpen={setNavOpen}
-    openLogin={openLogin}
-    openRegister={openRegister}
-    handleLogout={handleLogout}
-  />
+<Navbar
+  userProfile={userProfile}
+  navOpen={navOpen}
+  setNavOpen={setNavOpen}
+  openLogin={openLogin}
+  openRegister={openRegister}
+  handleLogout={handleLogout}
+  setScheduleOpen={setScheduleOpen}
+/>
+
+<ScheduleModal
+  open={scheduleOpen}
+  onClose={() => setScheduleOpen(false)}
+  schedule={fullSchedule}
+  downloadPDF={downloadSchedulePDF}
+/>
+
 
   <CampusSlideshow />
 
@@ -756,9 +1088,16 @@ const handleConfirmPayment = (txnId) => {
     handleAvatarChange={handleAvatarChange}
     avatarFileName={avatarFileName}
   />
+  
+  
+  
 {userProfile && (
-  <ApplicationsPanel applications={applications} />
+  <ApplicationsPanel
+    applications={applications}
+    onPayNow={handlePayNow}
+  />
 )}
+
   <PaymentModal
   open={paymentOpen}
   amount={Number(
@@ -925,6 +1264,9 @@ const handleConfirmPayment = (txnId) => {
     contactOpen={contactOpen}
     setContactOpen={setContactOpen} 
   />
+
+
+
 
   <Footer />
 

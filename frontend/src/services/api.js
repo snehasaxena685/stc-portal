@@ -71,3 +71,25 @@ export async function submitApplicationAPI(payload) {
   if (!res.ok) throw data;
   return data;
 }
+/* ================= AVATAR UPLOAD ================= */
+
+export async function uploadAvatarAPI(avatar) {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    throw new Error("No token found");
+  }
+
+  const res = await fetch(`${API_BASE}/users/upload-avatar`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ avatar }), // base64 string
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw data;
+  return data;
+}

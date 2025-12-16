@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 
 export default function ProfileEditModal({
   profileEditOpen,
@@ -11,6 +11,8 @@ export default function ProfileEditModal({
   saveProfileEdits,
 }) {
   if (!profileEditOpen) return null;
+
+  const fileInputRef = useRef(null);
 
   return (
     <div className="profile-edit-bg">
@@ -31,24 +33,29 @@ export default function ProfileEditModal({
           <div className="profile-edit-avatar">
             <div className="avatar-preview">
               {tempProfile.avatar ? (
-                <img src={tempProfile.avatar} alt="preview" />
+                <img src={tempProfile.avatar} alt="avatar" />
               ) : (
                 <div className="avatar-placeholder">👤</div>
               )}
             </div>
 
+            {/* HIDDEN FILE INPUT */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleAvatarChange}
+            />
+
             <div className="avatar-actions">
-              <label>
-                <input
-                  type="file"
-                  className="upload-input"
-                  accept="image/*"
-                  onChange={handleAvatarChange}
-                />
-                <button className="profile-btn profile-upload">
-                  Choose Photo
-                </button>
-              </label>
+              {/* ✅ WORKING BUTTON */}
+              <button
+                className="profile-btn profile-upload"
+                onClick={() => fileInputRef.current.click()}
+              >
+                Choose Photo
+              </button>
 
               {tempProfile.avatar && (
                 <button
@@ -85,9 +92,7 @@ export default function ProfileEditModal({
               <input
                 className="input-field"
                 value={tempProfile.email}
-                onChange={(e) =>
-                  setTempProfile((p) => ({ ...p, email: e.target.value }))
-                }
+                disabled
               />
             </div>
 
@@ -98,7 +103,10 @@ export default function ProfileEditModal({
                   className="input-field"
                   value={tempProfile.phone}
                   onChange={(e) =>
-                    setTempProfile((p) => ({ ...p, phone: e.target.value }))
+                    setTempProfile((p) => ({
+                      ...p,
+                      phone: e.target.value,
+                    }))
                   }
                 />
               </div>
