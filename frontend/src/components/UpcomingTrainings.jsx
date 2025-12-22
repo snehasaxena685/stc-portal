@@ -1,71 +1,54 @@
-import React from "react";
-
 export default function UpcomingTrainings({
   upcomingTrainings,
-  fullSchedule,
-  th,
-  td,
   userProfile,
   openLogin,
   openRegister,
   openProfileEdit,
   handleAvatarChange,
   avatarFileName,
+  openUpcomingModal,
 }) {
   return (
-    <section className="section-shell fade" id="schedule-section">
+    <section className="section-shell fade" id="upcoming-section">
       <div className="upcoming-strip">
+
         {/* LEFT SIDE */}
-        <div>
+        <div className="upcoming-left">
           <div className="upcoming-pill">Upcoming Trainings</div>
 
-          <div className="upcoming-list">
-            <div className="ticker-wrapper">
+          {/* VERTICAL NOTIFICATION SCROLLER */}
+          <div className="notification-box">
+            <div className="notification-ticker">
               {[...upcomingTrainings, ...upcomingTrainings].map((t, i) => (
-                <div key={i} className="upcoming-card show">
-                  <div className="upcoming-title">{t.title}</div>
-                  <div className="upcoming-meta">Starts: {t.dates}</div>
-                  <div className="upcoming-chip">Mode: {t.mode}</div>
+                <div
+                  key={i}
+                  className={`notification-item ${
+                    t.startingSoon ? "starting-soon" : ""
+                  }`}
+                  onClick={() => openUpcomingModal(t)}
+                >
+                  <div className="notification-title">{t.title}</div>
+                  <div className="notification-meta">{t.dates}</div>
+
+                  {t.startingSoon && (
+                    <span className="soon-badge">Starting Soon</span>
+                  )}
                 </div>
               ))}
             </div>
           </div>
 
-          {/* FULL SCHEDULE TABLE */}
-          <div className="card-stc" style={{ marginTop: 20 }}>
-            <h3 className="text-lg font-semibold text-green-900 mb-2">
-              Full Training Schedule – 2025
-            </h3>
-
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr style={{ background: "#e7f9ef", textAlign: "left" }}>
-                    <th style={th}>Code</th>
-                    <th style={th}>Course Title</th>
-                    <th style={th}>Dates</th>
-                    <th style={th}>Duration</th>
-                    <th style={th}>Centre</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {fullSchedule.map((row, i) => (
-                    <tr key={i} style={{ borderBottom: "1px solid #e5f4ea" }}>
-                      <td style={td}><strong>{row.code}</strong></td>
-                      <td style={td}>{row.title}</td>
-                      <td style={td}>{row.dates}</td>
-                      <td style={td}>{row.duration}</td>
-                      <td style={td}>{row.centre}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          {/* INFO BANNER */}
+          <div className="application-info-banner">
+            <span>ℹ️</span>
+            <marquee behavior="scroll" direction="left">
+              Applications open 3 months prior to course commencement and
+              close 15 days before the start date.
+            </marquee>
           </div>
         </div>
 
-        {/* RIGHT SIDE — PROFILE CARD */}
+        {/* RIGHT SIDE — PROFILE */}
         <div className="profile-shell">
           <div className="profile-sticky">
             <div className="profile-card">
@@ -135,7 +118,9 @@ export default function UpcomingTrainings({
             </div>
           </div>
         </div>
+
       </div>
     </section>
   );
 }
+  

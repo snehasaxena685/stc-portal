@@ -12,7 +12,7 @@ export default function PaymentModal({
   if (!open) return null;
 
   const UPI_ID = "snehasaxena685@okicici";
-  const PAYEE_NAME = "CSIR-CFTRI Training";
+  const PAYEE_NAME = "CSIR–CFTRI Training";
 
   const gpayUrl = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(
     PAYEE_NAME
@@ -47,7 +47,7 @@ export default function PaymentModal({
         </p>
 
         <p className="text-sm text-gray-700 mt-2">
-          Please pay the training fee manually using Google Pay / UPI.
+          Please pay the training fee manually using SBI Collect / UPI.
         </p>
 
         <div style={{ textAlign: "center", margin: "16px 0" }}>
@@ -67,7 +67,7 @@ export default function PaymentModal({
 
         <input
           type="text"
-          placeholder="Enter UPI Transaction ID"
+          placeholder="Enter UPI / SBI Collect Reference No"
           value={txnId}
           onChange={(e) => setTxnId(e.target.value)}
           style={{

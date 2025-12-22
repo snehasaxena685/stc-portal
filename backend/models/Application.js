@@ -1,43 +1,126 @@
 const mongoose = require("mongoose");
 
+/* ================= APPLICATION NUMBER GENERATOR ================= */
 const generateApplicationNumber = () => {
+  const year = new Date().getFullYear();
   const random = Math.floor(100000 + Math.random() * 900000);
-  return `APP-2025-${random}`;
+  return `APP-${year}-${random}`;
 };
 
+/* ================= APPLICATION SCHEMA ================= */
 const applicationSchema = new mongoose.Schema(
   {
-    userId: { type: String, required: true },
+    userId: {
+      type: String,
+      required: true,
+    },
 
-    courseTitle: { type: String, required: true },
-    courseId: { type: String },
+    courseTitle: {
+      type: String,
+      required: true,
+    },
 
-    fullName: { type: String, required: true },
-    email: { type: String, required: true },
-    degree: { type: String, required: true },
+    courseId: {
+      type: String,
+    },
 
-    country: { type: String, required: true },
-    state: { type: String, required: true },
-    organisation: { type: String, required: true },
-    category: { type: String, required: true },
-    phone: { type: String, required: true },
-    notes: { type: String },
+    fullName: {
+      type: String,
+      required: true,
+    },
 
+    email: {
+      type: String,
+      required: true,
+    },
+
+    degree: {
+      type: String,
+      required: true,
+    },
+
+    country: {
+      type: String,
+      required: true,
+    },
+
+    state: {
+      type: String,
+      required: true,
+    },
+
+    organisation: {
+      type: String,
+      required: true,
+    },
+
+    category: {
+      type: String,
+      required: true,
+    },
+
+    phone: {
+      type: String,
+      required: true,
+    },
+
+    notes: {
+      type: String,
+    },
+
+    /* 🔑 UNIQUE APPLICATION NUMBER */
     applicationNumber: {
       type: String,
       default: generateApplicationNumber,
-      unique: true, // ONLY unique index we keep
+      unique: true,
     },
 
-    status: { type: String, default: "Pending" },
+    status: {
+      type: String,
+      default: "Pending",
+    },
+applicationNumber: {
+  type: String,
+  default: generateApplicationNumber,
+  unique: true,
+},
 
-    submittedAt: { type: Date, default: Date.now },
+/* 💳 SBI COLLECT PAYMENT INFO */
+payment: {
+  method: {
+    type: String,
+    default: "SBI_COLLECT",
+  },
+  status: {
+    type: String,
+    enum: ["PENDING", "SUBMITTED", "VERIFIED"],
+    default: "PENDING",
+  },
+  sbiReferenceNo: {
+    type: String,
+  },
+  paidAmount: {
+    type: Number,
+  },
+  paidAt: {
+    type: Date,
+  },
+},
+
+status: {
+  type: String,
+  default: "Pending",
+},
+  
+    submittedAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
   { timestamps: true }
 );
 
-// ❗️IMPORTANT: DISABLE AUTO INDEX
+/* ❗ Prevent index crashes in dev */
 applicationSchema.set("autoIndex", false);
 
 module.exports = mongoose.model("Application", applicationSchema);
-  

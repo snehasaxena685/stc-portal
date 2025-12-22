@@ -1,3 +1,4 @@
+const transporter = require("../utils/mailer");
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -27,6 +28,39 @@ const register = async (req, res) => {
       avatar: "",
     });
 
+    /* ================= SEND EMAILS ================= */
+
+    // 📩 Mail to USER
+    await transporter.sendMail({
+      from: `"CFTRI STC Portal" <${process.env.MAIL_USER}>`,
+      to: email,
+      subject: "Registration Successful – CFTRI STC Portal",
+      html: `
+        <h3>Dear ${name},</h3>
+        <p>Your registration on <b>CSIR–CFTRI Short Term Training Courses Portal</b> was successful.</p>
+        <p><b>Email:</b> ${email}</p>
+        <p>You can now login and apply for courses.</p>
+        <br/>
+        <p>Regards,<br/>CFTRI STC Team</p>
+      `,
+    });
+
+    // 📩 Mail to ADMIN (STC)
+    await transporter.sendMail({
+      from: `"CFTRI STC Portal" <${process.env.MAIL_USER}>`,
+      to: process.env.STC_ADMIN_EMAIL,
+      subject: "New User Registration – CFTRI STC Portal",
+      html: `
+        <h3>New User Registered</h3>
+        <p><b>Name:</b> ${name}</p>
+        <p><b>Email:</b> ${email}</p>
+        <p><b>Phone:</b> ${phone || "N/A"}</p>
+        <p><b>Nationality:</b> ${nationality || "N/A"}</p>
+      `,
+    });
+
+    /* ================= RESPONSE ================= */
+
     res.json({
       msg: "Registration successful",
       user: {
@@ -38,6 +72,7 @@ const register = async (req, res) => {
         nationality: user.nationality,
       },
     });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: "Server error" });

@@ -71,6 +71,20 @@ export async function submitApplicationAPI(payload) {
   if (!res.ok) throw data;
   return data;
 }
+
+export async function submitSbiPaymentAPI(payload) {
+  const res = await fetch(`${API_BASE}/applications/submit-sbi-payment`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw data;
+  return data;
+}
+
+
 /* ================= AVATAR UPLOAD ================= */
 
 export async function uploadAvatarAPI(avatar) {

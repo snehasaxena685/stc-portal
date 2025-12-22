@@ -2,6 +2,7 @@
     import React, { useEffect, useState } from "react";
     import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import UpcomingCourseModal from "./components/UpcomingCourseModal";
 
 import ScheduleModal from "./components/ScheduleModal";
 
@@ -22,6 +23,7 @@ import { uploadAvatarAPI } from "./services/api";
     import {
     loginUser,
     registerUser,
+     submitSbiPaymentAPI,
     submitApplicationAPI,
   } from "./services/api";
   import { getProfile } from "./services/api";
@@ -96,6 +98,10 @@ export default function App() {
 const [showSplash, setShowSplash] = useState(true);
 const [paymentOpen, setPaymentOpen] = useState(false);
 const [pendingAppIndex, setPendingAppIndex] = useState(null);
+const [sbiRefNo, setSbiRefNo] = useState("");
+
+const [upcomingModalOpen, setUpcomingModalOpen] = useState(false);
+const [selectedUpcoming, setSelectedUpcoming] = useState(null);
 
 useEffect(() => {
   if (scheduleOpen) {
@@ -140,6 +146,14 @@ useEffect(() => {
 
     /* UPCOMING TRAININGS ANIM FLAG */
     const [trainingsVisible, setTrainingsVisible] = useState(false);
+
+
+    const openUpcomingModal = (course) => {
+  setSelectedUpcoming(course);
+  setUpcomingModalOpen(true);
+};
+
+
 
     /* APPLY MODAL */
     const [applyOpen, setApplyOpen] = useState(false);
@@ -334,17 +348,39 @@ localStorage.setItem("cftri_user_profile", JSON.stringify(profile));
     
     /* APPLY BUTTON CLICK */
     const handleApplyClick = (course) => {
-      if (!userProfile) {
-        showToast("Please login or register before applying.", "error");
-        openLogin();
-        return;
-      }
-      setSelectedCourse(course);
-      setApplyOpen(true);
-    };
+  const status = getCourseApplicationStatus(course.title);
 
-    const getApplyButtonLabel = () =>
-      userProfile ? "Apply for this Training" : "Register / Sign in to Apply";    
+  // ❌ Application not open
+  if (!status.isOpen) {
+    showToast(status.message, "error");
+    return;
+  }
+
+  // 🔐 Login check
+  if (!userProfile) {
+    showToast("Please login or register before applying.", "error");
+    openLogin();
+    return;
+  }
+
+  // ✅ Attach schedule info if needed later
+  setSelectedCourse({
+    ...course,
+    schedule: status.course,
+  });
+
+  setApplyOpen(true);
+};
+
+    const getApplyButtonLabel = (course) => {
+  const status = getCourseApplicationStatus(course.title);
+
+  if (!status.existsInSchedule) return "Not Yet Open";
+  if (status.isOpen) return "Apply Now";
+
+  return "Check Schedule";
+};
+    
 /* ================= PAYMENT HANDLERS (FIXED SCOPE) ================= */
 
 const handlePayLater = () => {
@@ -352,22 +388,42 @@ const handlePayLater = () => {
   showToast("Payment pending. You can pay later.", "success");
 };
 
-const handleConfirmPayment = (txnId) => {
-  if (pendingAppIndex === null) return;
+const handleConfirmPayment = async () => {
+  if (!sbiRefNo.trim()) {
+    showToast("Please enter SBI Collect Reference Number", "error");
+    return;
+  }
 
-  const updated = [...applications];
-  updated[pendingAppIndex] = {
-    ...updated[pendingAppIndex],
-    payment: "Completed",
-    txnId,
-  };
+  try {
+    await submitSbiPaymentAPI({
+      applicationId: applications[pendingAppIndex]?._id,
+      sbiReferenceNo: sbiRefNo,
+      amount: Number(
+        selectedCourse?.fee?.replace(/[₹,]/g, "") || 0
+      ),
+    });
 
-  setApplications(updated);
-  localStorage.setItem("cftri_applications", JSON.stringify(updated));
+    const updated = [...applications];
+    updated[pendingAppIndex].payment = "Submitted to SBI";
+    setApplications(updated);
 
-  setPaymentOpen(false);
-  showToast("Payment recorded successfully!", "success");
+    localStorage.setItem(
+      "cftri_applications",
+      JSON.stringify(updated)
+    );
+
+    setSbiRefNo("");
+    setPaymentOpen(false);
+
+    showToast(
+      "Payment reference submitted. Awaiting verification.",
+      "success"
+    );
+  } catch (err) {
+    showToast("Failed to submit payment reference", "error");
+  }
 };
+
 /* ================= PAY NOW HANDLER ================= */
 const handlePayNow = (index) => {
   setPendingAppIndex(index);
@@ -479,35 +535,82 @@ const downloadSchedulePDF = () => {
 };
   
   
-  
+      const parseStartDate = (dates) => {
+  // "15-04-2025 to 17-04-2025"
+  const start = dates.split("to")[0].trim();
+  const [dd, mm, yyyy] = start.split("-");
+  return new Date(yyyy, mm - 1, dd);
+};
+
+// const isApplicationOpen = (course) => {
+//   const today = new Date();
+//   const startDate = parseStartDate(course.dates);
+
+//   const openDate = new Date(startDate);
+//   openDate.setMonth(openDate.getMonth() - 3);
+
+//   const closeDate = new Date(startDate);
+//   closeDate.setDate(closeDate.getDate() - 15);
+
+//   return today >= openDate && today <= closeDate;
+// };
+
+      
+
 
     /* UPCOMING TRAININGS */
-    const upcomingTrainings = [
-      {
-        title: "Dairy Technology & Quality",
-        dates: "Feb 2025",
-        mode: "Hybrid",
-        code: "STC-01",
-      },
-      {
-        title: "Bakery & Confectionery",
-        dates: "Mar 2025",
-        mode: "On-Campus",
-        code: "STC-02",
-      },
-      {
-        title: "Food Safety & Standards",
-        dates: "Apr 2025",
-        mode: "Online",
-        code: "STC-03",
-      },
-      {
-        title: "Cereal Processing & Fortification",
-        dates: "Jun 2025",
-        mode: "On-Campus",
-        code: "STC-04",
-      },
-    ];
+    // const upcomingTrainings = [
+    //   {
+    //     title: "Dairy Technology & Quality",
+    //     dates: "Feb 2025",
+    //     mode: "Hybrid",
+    //     code: "STC-01",
+    //   },
+    //   {
+    //     title: "Bakery & Confectionery",
+    //     dates: "Mar 2025",
+    //     mode: "On-Campus",
+    //     code: "STC-02",
+    //   },
+    //   {
+    //     title: "Food Safety & Standards",
+    //     dates: "Apr 2025",
+    //     mode: "Online",
+    //     code: "STC-03",
+    //   },
+    //   {
+    //     title: "Cereal Processing & Fortification",
+    //     dates: "Jun 2025",
+    //     mode: "On-Campus",
+    //     code: "STC-04",
+    //   },
+    // ];
+// ================= COURSE vs SCHEDULE CHECK =================
+const getCourseApplicationStatus = (courseTitle) => {
+  const matched = fullSchedule.find(
+    (s) =>
+      s.title.toLowerCase().includes(courseTitle.toLowerCase()) ||
+      courseTitle.toLowerCase().includes(s.title.toLowerCase())
+  );
+
+  // ❌ Not in upcoming schedule
+  if (!matched) {
+    return {
+      existsInSchedule: false,
+      isOpen: false,
+      message:
+        "Applications not open yet. Please refer to the training schedule. This course will open 3 months prior to commencement.",
+    };
+  }
+
+  // ✅ FOR TESTING: FORCE OPEN
+  return {
+    existsInSchedule: true,
+    isOpen: true,
+    course: matched,
+    message: "Applications are open. Kindly apply.",
+  };
+};
 
 
   /* ================= FULL TRAINING SCHEDULE (2025–2026) ================= */
@@ -797,6 +900,22 @@ const fullSchedule = [
   },
 ];
 
+const upcomingTrainings = fullSchedule
+  .sort((a, b) => parseStartDate(a.dates) - parseStartDate(b.dates))
+  .map((course) => {
+    const startDate = parseStartDate(course.dates);
+    const today = new Date();
+    const diffTime = startDate - today;
+    const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return {
+      ...course,
+      status: "Applications Open",   // ✅ forced open for testing
+      isOpen: true,                  // ✅ apply enabled
+      startingSoon: daysLeft <= 15 && daysLeft >= 0, // 🔔 highlight
+      image: "/images/courses/default.jpg",
+    };
+  });
   
 
   {/* ================= FULL SCHEDULE TABLE ================= */}
@@ -1064,6 +1183,16 @@ const openProfileEdit = () => {
   setScheduleOpen={setScheduleOpen}
 />
 
+<UpcomingCourseModal
+  open={upcomingModalOpen}
+  onClose={() => setUpcomingModalOpen(false)}
+  course={selectedUpcoming}
+  userProfile={userProfile}
+  onApply={handleApplyClick}
+  openLogin={openLogin}
+/>
+
+
 <ScheduleModal
   open={scheduleOpen}
   onClose={() => setScheduleOpen(false)}
@@ -1077,18 +1206,16 @@ const openProfileEdit = () => {
 
       <HeroSection userProfile={userProfile} />
   <UpcomingTrainings
-    upcomingTrainings={upcomingTrainings}
-    fullSchedule={fullSchedule}
-    th={th}
-    td={td}
-    userProfile={userProfile}
-    openLogin={openLogin}
-    openRegister={openRegister}
-    openProfileEdit={openProfileEdit}
-    handleAvatarChange={handleAvatarChange}
-    avatarFileName={avatarFileName}
-  />
-  
+  upcomingTrainings={upcomingTrainings}
+  userProfile={userProfile}
+  openLogin={openLogin}
+  openRegister={openRegister}
+  openProfileEdit={openProfileEdit}
+  handleAvatarChange={handleAvatarChange}
+  avatarFileName={avatarFileName}
+  openUpcomingModal={openUpcomingModal}
+/>
+
   
   
 {userProfile && (
@@ -1098,11 +1225,13 @@ const openProfileEdit = () => {
   />
 )}
 
-  <PaymentModal
+<PaymentModal
   open={paymentOpen}
   amount={Number(
     selectedCourse?.fee?.replace(/[₹,]/g, "") || 0
   )}
+  sbiRefNo={sbiRefNo}
+  setSbiRefNo={setSbiRefNo}
   onConfirmPayment={handleConfirmPayment}
   onPayLater={handlePayLater}
   onClose={() => setPaymentOpen(false)}
