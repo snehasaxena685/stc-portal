@@ -98,10 +98,9 @@ export default function App() {
 const [showSplash, setShowSplash] = useState(true);
 const [paymentOpen, setPaymentOpen] = useState(false);
 const [pendingAppIndex, setPendingAppIndex] = useState(null);
-const [sbiRefNo, setSbiRefNo] = useState("");
-
 const [upcomingModalOpen, setUpcomingModalOpen] = useState(false);
 const [selectedUpcoming, setSelectedUpcoming] = useState(null);
+const [sbiRefNo, setSbiRefNo] = useState("");
 
 useEffect(() => {
   if (scheduleOpen) {
@@ -350,11 +349,10 @@ localStorage.setItem("cftri_user_profile", JSON.stringify(profile));
     const handleApplyClick = (course) => {
   const status = getCourseApplicationStatus(course.title);
 
-  // ❌ Application not open
-  if (!status.isOpen) {
-    showToast(status.message, "error");
-    return;
-  }
+if (status.status === "Applied") {
+  showToast("Applications is not open yet Kindly refer to the Schedule. ", "error");
+  return;
+}
 
   // 🔐 Login check
   if (!userProfile) {
@@ -371,15 +369,30 @@ localStorage.setItem("cftri_user_profile", JSON.stringify(profile));
 
   setApplyOpen(true);
 };
+const getCourseApplicationStatus = (courseTitle) => {
+  const app = applications.find(
+    (a) => a.course === courseTitle
+  );
 
-    const getApplyButtonLabel = (course) => {
+  return {
+    existsInSchedule: true,          // safe default
+    isOpen: true,                    // you already force open
+    status: app?.status || null,
+    payment: app?.payment || null,
+  };
+};
+
+   const getApplyButtonLabel = (course) => {
   const status = getCourseApplicationStatus(course.title);
 
   if (!status.existsInSchedule) return "Not Yet Open";
-  if (status.isOpen) return "Apply Now";
 
-  return "Check Schedule";
+  if (status.status === "Applied") return "Applied";
+  if (status.payment === "Completed") return "Paid";
+
+  return "Apply Now";
 };
+
     
 /* ================= PAYMENT HANDLERS (FIXED SCOPE) ================= */
 
@@ -542,18 +555,18 @@ const downloadSchedulePDF = () => {
   return new Date(yyyy, mm - 1, dd);
 };
 
-// const isApplicationOpen = (course) => {
-//   const today = new Date();
-//   const startDate = parseStartDate(course.dates);
+const isApplicationOpen = (course) => {
+  const today = new Date();
+  const startDate = parseStartDate(course.dates);
 
-//   const openDate = new Date(startDate);
-//   openDate.setMonth(openDate.getMonth() - 3);
+  const openDate = new Date(startDate);
+  openDate.setMonth(openDate.getMonth() - 3);
 
-//   const closeDate = new Date(startDate);
-//   closeDate.setDate(closeDate.getDate() - 15);
+  const closeDate = new Date(startDate);
+  closeDate.setDate(closeDate.getDate() - 15);
 
-//   return today >= openDate && today <= closeDate;
-// };
+  return today >= openDate && today <= closeDate;
+};
 
       
 
@@ -585,32 +598,6 @@ const downloadSchedulePDF = () => {
     //     code: "STC-04",
     //   },
     // ];
-// ================= COURSE vs SCHEDULE CHECK =================
-const getCourseApplicationStatus = (courseTitle) => {
-  const matched = fullSchedule.find(
-    (s) =>
-      s.title.toLowerCase().includes(courseTitle.toLowerCase()) ||
-      courseTitle.toLowerCase().includes(s.title.toLowerCase())
-  );
-
-  // ❌ Not in upcoming schedule
-  if (!matched) {
-    return {
-      existsInSchedule: false,
-      isOpen: false,
-      message:
-        "Applications not open yet. Please refer to the training schedule. This course will open 3 months prior to commencement.",
-    };
-  }
-
-  // ✅ FOR TESTING: FORCE OPEN
-  return {
-    existsInSchedule: true,
-    isOpen: true,
-    course: matched,
-    message: "Applications are open. Kindly apply.",
-  };
-};
 
 
   /* ================= FULL TRAINING SCHEDULE (2025–2026) ================= */
@@ -904,16 +891,15 @@ const upcomingTrainings = fullSchedule
   .sort((a, b) => parseStartDate(a.dates) - parseStartDate(b.dates))
   .map((course) => {
     const startDate = parseStartDate(course.dates);
-    const today = new Date();
-    const diffTime = startDate - today;
-    const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const daysLeft = Math.ceil(
+      (startDate - new Date()) / (1000 * 60 * 60 * 24)
+    );
 
     return {
       ...course,
-      status: "Applications Open",   // ✅ forced open for testing
-      isOpen: true,                  // ✅ apply enabled
-      startingSoon: daysLeft <= 15 && daysLeft >= 0, // 🔔 highlight
-      image: "/images/courses/default.jpg",
+      status: "Applications Open", // ✅ FORCE OPEN
+      isOpen: true,                // ✅ APPLY ENABLED
+      startingSoon: daysLeft <= 15, // 🔔 highlight
     };
   });
   

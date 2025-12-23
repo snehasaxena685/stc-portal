@@ -2,7 +2,6 @@
   "name": "backend",
   "version": "1.0.0",
   "main": "server.js",
-  
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js"
@@ -10,7 +9,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
@@ -25,6 +23,5 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.11"
-  },
-  "description": ""
+  }
 }

@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const upload = require("../middlewares/upload");
 
-// ✅ IMPORT BOTH CONTROLLERS
 const {
   submitApplication,
   submitSbiPayment,
