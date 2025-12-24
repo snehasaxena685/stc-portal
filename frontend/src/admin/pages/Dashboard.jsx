@@ -1,12 +1,69 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../admin.css";
 
+const API_BASE = "http://localhost:5000/api";
+
 export default function Dashboard() {
-  const stats = [
-    { title: "Total Applications", value: 128, color: "blue", icon: "📄" },
-    { title: "Approved", value: 64, color: "green", icon: "✅" },
-    { title: "Pending", value: 42, color: "orange", icon: "⏳" },
-    { title: "Payments Received", value: 22, color: "sky", icon: "💳" },
+  const navigate = useNavigate();
+
+  // 🔹 dynamic stats state
+  const [stats, setStats] = useState({
+    totalApplications: 0,
+    approved: 0,
+    pending: 0,
+    paymentsReceived: 0,
+  });
+
+  // 🔹 fetch from backend
+  const fetchStats = async () => {
+    try {
+      const res = await fetch(
+        `${API_BASE}/admin/dashboard/stats`,
+        { credentials: "include" }
+      );
+      const data = await res.json();
+      setStats(data);
+    } catch (err) {
+      console.error("Dashboard stats error", err);
+    }
+  };
+
+  // 🔹 load once (and on refresh)
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  // 🔹 map for UI (same UI, dynamic values)
+  const statBoxes = [
+    {
+      title: "Total Applications",
+      value: stats.totalApplications,
+      color: "blue",
+      icon: "📄",
+      link: "/admin/applications",
+    },
+    {
+      title: "Approved",
+      value: stats.approved,
+      color: "green",
+      icon: "✅",
+      link: "/admin/applications?status=Approved",
+    },
+    {
+      title: "Pending",
+      value: stats.pending,
+      color: "orange",
+      icon: "⏳",
+      link: "/admin/applications?status=Pending",
+    },
+    {
+      title: "Payments Received",
+      value: stats.paymentsReceived,
+      color: "sky",
+      icon: "💳",
+      link: "/admin/payments",
+    },
   ];
 
   return (
@@ -16,13 +73,15 @@ export default function Dashboard() {
         <div className="sidebar-title">STC Admin Panel</div>
         <nav>
           <a className="active">Dashboard</a>
-          <a>Applications</a>
-          <a>Payments</a>
+          <a onClick={() => navigate("/admin/applications")}>Applications</a>
+          <a onClick={() => navigate("/admin/payments")}>Payments</a>
           <a>Courses</a>
           <a>Participants</a>
           <a>Create Login Accounts</a>
           <a>Reports</a>
-          <a className="logout">Logout</a>
+          <a className="logout" onClick={() => navigate("/admin/login")}>
+            Logout
+          </a>
         </nav>
       </aside>
 
@@ -33,7 +92,7 @@ export default function Dashboard() {
           <h2>CFTRI – STC Applications Management System</h2>
           <div className="topbar-right">
             Welcome, <strong>admin</strong>
-            <button>Logout</button>
+            <button onClick={() => navigate("/admin/login")}>Logout</button>
           </div>
         </header>
 
@@ -45,8 +104,13 @@ export default function Dashboard() {
           </p>
 
           <div className="stats-row">
-            {stats.map((s) => (
-              <div key={s.title} className={`stat-box ${s.color}`}>
+            {statBoxes.map((s) => (
+              <div
+                key={s.title}
+                className={`stat-box ${s.color}`}
+                style={{ cursor: "pointer" }}
+                onClick={() => navigate(s.link)}
+              >
                 <div>
                   <p>{s.title}</p>
                   <h2>{s.value}</h2>

@@ -1,24 +1,13 @@
-const API = "http://localhost:5000/api/admin";
+const API_BASE = "http://localhost:5000/api";
 
-const auth = () => ({
-  Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
-});
-
-export const adminLogin = async (email, password) => {
-  const res = await fetch(`${API}/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
+export async function getDashboardStats() {
+  const res = await fetch(`${API_BASE}/admin/dashboard/stats`, {
+    credentials: "include",
   });
-  return res.json();
-};
 
-export const getApplications = async () => {
-  const res = await fetch(`${API}/applications`, { headers: auth() });
-  return res.json();
-};
+  if (!res.ok) {
+    throw new Error("Failed to fetch dashboard stats");
+  }
 
-export const getStats = async () => {
-  const res = await fetch(`${API}/stats`, { headers: auth() });
   return res.json();
-};
+}

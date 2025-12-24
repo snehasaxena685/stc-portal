@@ -47,13 +47,14 @@ export default function CoursesSection({
                     </button>
                   ) : (
                     <button
-                      className="apply-btn closed"
-                      onClick={() => handleApplyClick(c)}
-                    >
-                      🔒 Applications Not Open
-                      <br />
-                      <span>Check Schedule</span>
-                    </button>
+  className="apply-btn closed"
+  disabled
+>
+  🔒 Applications Not Open
+  <br />
+  <span>Check Schedule</span>
+</button>
+
                   )}
                 </div>
 

@@ -344,31 +344,38 @@ localStorage.setItem("cftri_user_profile", JSON.stringify(profile));
   setNavOpen(false);
 };
 
-    
+    // ================= DATE HELPERS =================
+
+
+
+
+
     /* APPLY BUTTON CLICK */
-    const handleApplyClick = (course) => {
-  const status = getCourseApplicationStatus(course.title);
-
-if (status.status === "Applied") {
-  showToast("Applications is not open yet Kindly refer to the Schedule. ", "error");
-  return;
-}
-
-  // 🔐 Login check
+  const handleApplyClick = (course) => {
+  // 🔐 Login required
   if (!userProfile) {
     showToast("Please login or register before applying.", "error");
     openLogin();
     return;
   }
 
-  // ✅ Attach schedule info if needed later
-  setSelectedCourse({
-    ...course,
-    schedule: status.course,
-  });
+  // 📅 Date window check
+  if (!isApplicationOpen(course)) {
+    showToast("Applications are not open for this course yet.", "error");
+    return;
+  }
 
+  // 🔁 Already applied
+  const status = getCourseApplicationStatus(course.title);
+  if (status.status === "Applied") {
+    showToast("You have already applied for this course.", "info");
+    return;
+  }
+
+  setSelectedCourse(course);
   setApplyOpen(true);
 };
+
 const getCourseApplicationStatus = (courseTitle) => {
   const app = applications.find(
     (a) => a.course === courseTitle
@@ -382,16 +389,20 @@ const getCourseApplicationStatus = (courseTitle) => {
   };
 };
 
-   const getApplyButtonLabel = (course) => {
-  const status = getCourseApplicationStatus(course.title);
+  const getApplyButtonLabel = (course) => {
+  if (!isApplicationOpen(course)) return "Not Yet Open";
 
-  if (!status.existsInSchedule) return "Not Yet Open";
+  const app = applications.find(
+    (a) => a.course === course.title
+  );
 
-  if (status.status === "Applied") return "Applied";
-  if (status.payment === "Completed") return "Paid";
+  if (app?.payment === "Completed") return "Paid";
+  if (app?.status === "Applied") return "Applied";
 
   return "Apply Now";
 };
+
+
 
     
 /* ================= PAYMENT HANDLERS (FIXED SCOPE) ================= */
@@ -548,16 +559,27 @@ const downloadSchedulePDF = () => {
 };
   
   
-      const parseStartDate = (dates) => {
-  // "15-04-2025 to 17-04-2025"
+  const parseStartDate = (dates) => {
+  if (!dates || typeof dates !== "string") return null;
+
   const start = dates.split("to")[0].trim();
   const [dd, mm, yyyy] = start.split("-");
   return new Date(yyyy, mm - 1, dd);
 };
 
+
 const isApplicationOpen = (course) => {
+  const scheduleItem = fullSchedule.find(
+    (s) => s.title === course.title
+  );
+
+  // ❌ No schedule → not open
+  if (!scheduleItem) return false;
+
+  const startDate = parseStartDate(scheduleItem.dates);
+  if (!startDate) return false;
+
   const today = new Date();
-  const startDate = parseStartDate(course.dates);
 
   const openDate = new Date(startDate);
   openDate.setMonth(openDate.getMonth() - 3);
